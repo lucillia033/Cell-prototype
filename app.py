@@ -93,5 +93,9 @@ with st.container(border=True):
     st.subheader(f"{info['icon']} {target} 요약")
     st.info(info["desc"])
     
-    # 클릭 시 pages/ 폴더 내 해당 개별 파일 페이지로 직접 이동
-    st.page_link(info["path"], label=f"🔍 {target} 상세 탐구 페이지로 이동하기 ➔", icon=info["icon"])
+    # st.page_link 경로 예외 처리 및 이동 실행
+    page_path = info["path"]
+    if os.path.exists(page_path):
+        st.page_link(page_path, label=f"🔍 {target} 상세 탐구 페이지로 이동하기 ➔", icon=info["icon"])
+    else:
+        st.warning(f"⚠️ `{page_path}` 파일 경로를 찾을 수 없습니다. 깃허브 `pages/` 폴더 내 파일명을 확인해 주세요.")
