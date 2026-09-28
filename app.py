@@ -82,7 +82,7 @@ with col_right:
             if st.button("🏗️ 세포골격", use_container_width=True): st.session_state["preview_target"] = "세포골격"
 
 # -----------------------------------------------------------------------------
-# 4. 하단 선택 소기관 요약 및 이동 링크
+# 4. 하단 선택 소기관 요약 및 이동 링크 (경로 오류 방지 적용)
 # -----------------------------------------------------------------------------
 st.markdown("---")
 target = st.session_state["preview_target"]
@@ -93,9 +93,13 @@ with st.container(border=True):
     st.subheader(f"{info['icon']} {target} 요약")
     st.info(info["desc"])
     
-    # st.page_link 경로 예외 처리 및 이동 실행
     page_path = info["path"]
+    
+    # 깃허브 상에 해당 파일이 실제로 존재하는지 확인 후 안전하게 실행
     if os.path.exists(page_path):
-        st.page_link(page_path, label=f"🔍 {target} 상세 탐구 페이지로 이동하기 ➔", icon=info["icon"])
+        try:
+            st.page_link(page_path, label=f"🔍 {target} 상세 탐구 페이지로 이동하기 ➔", icon=info["icon"])
+        except Exception:
+            st.warning(f"⚠️ `{page_path}` 페이지 연결 중 오류가 발생했습니다. 좌측 사이드바 메뉴를 확인해 보세요.")
     else:
-        st.warning(f"⚠️ `{page_path}` 파일 경로를 찾을 수 없습니다. 깃허브 `pages/` 폴더 내 파일명을 확인해 주세요.")
+        st.warning(f"⚠️ `{page_path}` 파일이 깃허브 `pages/` 폴더 내에 아직 생성되지 않았습니다. 깃허브 폴더 및 파일명을 확인해 주세요.")
