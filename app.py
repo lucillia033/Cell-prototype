@@ -2,7 +2,7 @@ import streamlit as st
 import os
 
 # -----------------------------------------------------------------------------
-# 1. 기본 페이지 설정
+# 1. 페이지 기본 설정
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="동물세포 탐험대",
@@ -12,43 +12,9 @@ st.set_page_config(
 )
 
 # -----------------------------------------------------------------------------
-# 2. 존재하는 파일만 선택하여 Page 객체 동적 생성
+# 2. 메인 화면 전용 렌더링 함수
 # -----------------------------------------------------------------------------
-ORGANELLE_PAGES_INFO = [
-    ("pages/1_핵.py", "핵", "🧠", "핵"),
-    ("pages/2_리보솜.py", "리보솜", "⚙️", "리보솜"),
-    ("pages/3_미토콘드리아.py", "미토콘드리아", "⚡", "미토콘드리아"),
-    ("pages/4_소포체.py", "소포체", "📦", "소포체"),
-    ("pages/5_골지체.py", "골지체", "📮", "골지체"),
-    ("pages/6_리소좀.py", "리소좀", "♻️", "리소좀"),
-    ("pages/7_세포막.py", "세포막", "🛡️", "세포막"),
-    ("pages/8_세포질.py", "세포질", "🌊", "세포질"),
-    ("pages/9_세포골격.py", "세포골격", "🏗️", "세포골격"),
-]
-
-valid_organelle_pages = []
-page_objects_map = {}
-
-# 실제 존재하는 파일만 st.Page로 만듦
-for path, title, icon, key in ORGANELLE_PAGES_INFO:
-    if os.path.exists(path):
-        page_obj = st.Page(path, title=title, icon=icon)
-        valid_organelle_pages.append(page_obj)
-        page_objects_map[key] = page_obj
-
-# 메인 페이지 및 네비게이션 생성
-main_page_obj = st.Page("app.py", title="동물세포 한눈에 보기", icon="🔬", default=True)
-
-pages_dict = {"메인": [main_page_obj]}
-if valid_organelle_pages:
-    pages_dict["세포 소기관 목록"] = valid_organelle_pages
-
-pg = st.navigation(pages_dict)
-
-# -----------------------------------------------------------------------------
-# 3. 메인 화면 출력 조건 처리 (현재 선택된 페이지가 메인일 때만 실행)
-# -----------------------------------------------------------------------------
-if pg.selected == main_page_obj:
+def show_main_page():
     # 세션 상태 관리
     if "preview_target" not in st.session_state:
         st.session_state["preview_target"] = "핵"
@@ -82,7 +48,7 @@ if pg.selected == main_page_obj:
     """, unsafe_allow_html=True)
 
     st.title("🔬 동물세포 한눈에 보기")
-    st.write("소기관 버튼을 누르면 하단에 **간단 설명 카드**가 표출되며, **이동 버튼**이나 **좌측 사이드바**를 통해 해당 전용 페이지로 완전히 이동할 수 있습니다.")
+    st.write("소기관 버튼을 누르면 하단에 **간단 설명 카드**가 표출되며, **이동 버튼**이나 **좌측 사이드바**를 통해 해당 전용 페이지로 이동할 수 있습니다.")
 
     col_left, col_right = st.columns([1.2, 1])
 
@@ -133,6 +99,40 @@ if pg.selected == main_page_obj:
             st.warning(f"⚠️ `{target}` 상세 파일(`pages/` 내 해당 `.py` 파일)이 GitHub에 아직 존재하지 않습니다.")
 
 # -----------------------------------------------------------------------------
-# 4. 네비게이션 실행 (선택된 페이지의 내용만 단독으로 렌더링)
+# 3. 존재하는 파일만 선택하여 Page 객체 생성 및 네비게이션 설정
+# -----------------------------------------------------------------------------
+ORGANELLE_PAGES_INFO = [
+    ("pages/1_핵.py", "핵", "🧠", "핵"),
+    ("pages/2_리보솜.py", "리보솜", "⚙️", "리보솜"),
+    ("pages/3_미토콘드리아.py", "미토콘드리아", "⚡", "미토콘드리아"),
+    ("pages/4_소포체.py", "소포체", "📦", "소포체"),
+    ("pages/5_골지체.py", "골지체", "📮", "골지체"),
+    ("pages/6_리소좀.py", "리소좀", "♻️", "리소좀"),
+    ("pages/7_세포막.py", "세포막", "🛡️", "세포막"),
+    ("pages/8_세포질.py", "세포질", "🌊", "세포질"),
+    ("pages/9_세포골격.py", "세포골격", "🏗️", "세포골격"),
+]
+
+valid_organelle_pages = []
+page_objects_map = {}
+
+# 실제 존재하는 파일만 st.Page로 동적 등록
+for path, title, icon, key in ORGANELLE_PAGES_INFO:
+    if os.path.exists(path):
+        page_obj = st.Page(path, title=title, icon=icon)
+        valid_organelle_pages.append(page_obj)
+        page_objects_map[key] = page_obj
+
+# 메인 페이지는 함수(show_main_page)를 직접 st.Page에 전달
+main_page_obj = st.Page(show_main_page, title="동물세포 한눈에 보기", icon="🔬", default=True)
+
+pages_dict = {"메인": [main_page_obj]}
+if valid_organelle_pages:
+    pages_dict["세포 소기관 목록"] = valid_organelle_pages
+
+pg = st.navigation(pages_dict)
+
+# -----------------------------------------------------------------------------
+# 4. 네비게이션 실행 (선택된 페이지 단독 실행)
 # -----------------------------------------------------------------------------
 pg.run()
