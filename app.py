@@ -2,12 +2,13 @@ import streamlit as st
 import os
 
 # -----------------------------------------------------------------------------
-# 1. 페이지 기본 설정 및 카드/태그 스타일 CSS
+# 1. 페이지 기본 설정 (사이드바 기본 펼침 및 카드/태그 스타일 CSS)
 # -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="동물세포 탐험대 — 메인",
     page_icon="🔬",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"  # 사이드바를 기본적으로 열어두어 페이지 목록이 보이도록 설정
 )
 
 st.markdown("""
@@ -47,7 +48,7 @@ ORGANELLES = {
 # 3. 메인 화면 레이아웃 (좌: 세포 이미지 / 우: 소기관 선택 버튼)
 # -----------------------------------------------------------------------------
 st.title("🔬 동물세포 한눈에 보기")
-st.write("소기관 버튼을 누르면 하단에 **간단 설명 카드**가 표시되며, 버튼을 클릭하여 해당 소기관 개별 페이지로 이동할 수 있습니다.")
+st.write("소기관 버튼을 누르면 하단에 **간단 설명 카드**가 표시되며, 버튼을 클릭하거나 **좌측 사이드바**를 통해 이동할 수 있습니다.")
 
 col_left, col_right = st.columns([1.2, 1])
 
@@ -82,7 +83,7 @@ with col_right:
             if st.button("🏗️ 세포골격", use_container_width=True): st.session_state["preview_target"] = "세포골격"
 
 # -----------------------------------------------------------------------------
-# 4. 하단 선택 소기관 요약 및 이동 링크 (경로 오류 방지 적용)
+# 4. 하단 선택 소기관 요약 및 이동 링크
 # -----------------------------------------------------------------------------
 st.markdown("---")
 target = st.session_state["preview_target"]
@@ -95,11 +96,8 @@ with st.container(border=True):
     
     page_path = info["path"]
     
-    # 깃허브 상에 해당 파일이 실제로 존재하는지 확인 후 안전하게 실행
-    if os.path.exists(page_path):
-        try:
-            st.page_link(page_path, label=f"🔍 {target} 상세 탐구 페이지로 이동하기 ➔", icon=info["icon"])
-        except Exception:
-            st.warning(f"⚠️ `{page_path}` 페이지 연결 중 오류가 발생했습니다. 좌측 사이드바 메뉴를 확인해 보세요.")
-    else:
-        st.warning(f"⚠️ `{page_path}` 파일이 깃허브 `pages/` 폴더 내에 아직 생성되지 않았습니다. 깃허브 폴더 및 파일명을 확인해 주세요.")
+    # st.page_link 오류 시 사이드바 이용 안내 대체
+    try:
+        st.page_link(page_path, label=f"🔍 {target} 상세 탐구 페이지로 이동하기 ➔", icon=info["icon"])
+    except Exception:
+        st.info(f"👉 **{target}** 상세 내용은 왼쪽 사이드바 메뉴의 **`{page_path.replace('pages/', '')}`**를 클릭해 주세요!")
