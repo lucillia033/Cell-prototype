@@ -56,7 +56,7 @@ with col_left:
     st.markdown("### 🖼️ 동물세포 전체 구조")
     img_file = "cell_image.png"
     if os.path.exists(img_file):
-        st.image(img_file, caption="동물세포의 구조 및 소기관 위치", use_column_width=True)
+        st.image(img_file, caption="동물세포의 구조 및 소기관 위치", use_container_width=True)
     else:
         st.info("💡 **이미지 등록 안내**\n\n깃허브 메인 위치에 `cell_image.png` 파일로 세포 구조도 이미지를 업로드해 주세요.")
 
