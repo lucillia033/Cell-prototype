@@ -1,9 +1,7 @@
 import streamlit as st
 import os
 
-# -----------------------------------------------------------------------------
-# 1. 기본 페이지 설정 (사이드바 기본 열림)
-# -----------------------------------------------------------------------------
+# 1. 페이지 기본 설정
 st.set_page_config(
     page_title="동물세포 탐험대",
     page_icon="🔬",
@@ -11,10 +9,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# -----------------------------------------------------------------------------
-# 2. 멀티페이지 네비게이션 자동 구성 (파일 존재 여부 확인 후 안전하게 등록)
-# -----------------------------------------------------------------------------
+# 2. 존재하는 페이지 파일들을 감지하여 네비게이션 구성
 ORGANELLE_PAGES_INFO = [
+    ("pages/0_메인.py", "동물세포 한눈에 보기", "🔬", "메인"),
     ("pages/1_핵.py", "핵", "🧠", "핵"),
     ("pages/2_리보솜.py", "리보솜", "⚙️", "리보솜"),
     ("pages/3_미토콘드리아.py", "미토콘드리아", "⚡", "미토콘드리아"),
@@ -26,116 +23,18 @@ ORGANELLE_PAGES_INFO = [
     ("pages/9_세포골격.py", "세포골격", "🏗️", "세포골격"),
 ]
 
-# 메인 페이지 및 소기관 Page 객체 생성
-main_page = st.Page("app.py", title="동물세포 한눈에 보기", icon="🔬", default=True)
-
-valid_organelle_pages = []
-page_path_map = {}
+valid_pages = []
 
 for path, title, icon, key in ORGANELLE_PAGES_INFO:
     if os.path.exists(path):
-        p_obj = st.Page(path, title=title, icon=icon)
-        valid_organelle_pages.append(p_obj)
-        page_path_map[key] = path
+        # 첫 번째 항목(0_메인.py)을 기본(default) 페이지로 지정
+        is_default = (key == "메인")
+        p_obj = st.Page(path, title=title, icon=icon, default=is_default)
+        valid_pages.append(p_obj)
 
-# 사이드바 메뉴 딕셔너리 생성
-pages_dict = {"메인": [main_page]}
-if valid_organelle_pages:
-    pages_dict["세포 소기관 목록"] = valid_organelle_pages
-
-pg = st.navigation(pages_dict)
-
-# -----------------------------------------------------------------------------
-# 3. 메인 화면 UI (현재 접속한 페이지가 메인("app.py")일 때만 출력)
-# -----------------------------------------------------------------------------
-# pg.run() 실행 전에 사용자의 현재 페이지 선택을 체크합니다.
-if st.get_option("client.showErrorDetails") is not None:  # 기본 진입점 체크
-    pass
-
-# 세션 상태 관리
-if "preview_target" not in st.session_state:
-    st.session_state["preview_target"] = "핵"
-
-ORGANELLES = {
-    "핵": {"icon": "🧠", "desc": "세포의 생명 활동을 조절하는 중심 기관으로, 유전 정보(DNA)를 보관합니다."},
-    "리보솜": {"icon": "⚙️", "desc": "mRNA의 유전 정보를 바탕으로 단백질을 합성하는 공장입니다."},
-    "미토콘드리아": {"icon": "⚡", "desc": "세포 호흡을 통해 유기물을 분해하고 ATP(에너지)를 생성합니다."},
-    "소포체": {"icon": "📦", "desc": "단백질과 지질을 합성하고 세포 내 이동 통로 역할을 합니다."},
-    "골지체": {"icon": "📮", "desc": "소포체에서 온 단백질을 가공·분류하여 세포 안팎으로 분비합니다."},
-    "리소좀": {"icon": "♻️", "desc": "가수분해 효소를 이용해 손상된 소기관이나 노폐물을 분해합니다."},
-    "세포막": {"icon": "🛡️", "desc": "세포 외부와의 경계로, 물질의 출입을 선택적으로 조절합니다."},
-    "세포질": {"icon": "🌊", "desc": "세포 내부를 채우는 액체 환경으로 여러 대사 과정이 일어납니다."},
-    "세포골격": {"icon": "🏗️", "desc": "세포의 형태를 유지하고 내부 물질의 이동 길을 제공합니다."}
-}
-
-# CSS 스타일 적용
-st.markdown("""
-    <style>
-    .badge {
-        display: inline-block;
-        background-color: #0083B0;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-st.title("🔬 동물세포 한눈에 보기")
-st.write("소기관 버튼을 누르면 하단에 **간단 설명 카드**가 표출되며, **이동 버튼**이나 **좌측 사이드바**를 통해 해당 전용 페이지로 이동할 수 있습니다.")
-
-col_left, col_right = st.columns([1.2, 1])
-
-# 좌측: 세포 이미지
-with col_left:
-    st.markdown("### 🖼️ 동물세포 전체 구조")
-    img_file = "cell_image.png"
-    if os.path.exists(img_file):
-        st.image(img_file, caption="동물세포의 구조 및 소기관 위치", use_container_width=True)
-    else:
-        st.info("💡 **이미지 등록 안내**\n\n깃허브 메인 위치에 `cell_image.png` 파일로 세포 구조도 이미지를 업로드해 주세요.")
-
-# 우측: 3x3 소기관 버튼
-with col_right:
-    st.markdown("### 🎯 소기관 선택하기")
-    with st.container(border=True):
-        c1, c2, c3 = st.columns(3)
-        
-        with c1:
-            if st.button("🧠 핵", use_container_width=True): st.session_state["preview_target"] = "핵"
-            if st.button("📦 소포체", use_container_width=True): st.session_state["preview_target"] = "소포체"
-            if st.button("⚙️ 리보솜", use_container_width=True): st.session_state["preview_target"] = "리보솜"
-            
-        with c2:
-            if st.button("⚡ 미토콘드리아", use_container_width=True): st.session_state["preview_target"] = "미토콘드리아"
-            if st.button("📮 골지체", use_container_width=True): st.session_state["preview_target"] = "골지체"
-            if st.button("♻️ 리소좀", use_container_width=True): st.session_state["preview_target"] = "리소좀"
-            
-        with c3:
-            if st.button("🛡️ 세포막", use_container_width=True): st.session_state["preview_target"] = "세포막"
-            if st.button("🌊 세포질", use_container_width=True): st.session_state["preview_target"] = "세포질"
-            if st.button("🏗️ 세포골격", use_container_width=True): st.session_state["preview_target"] = "세포골격"
-
-# 하단 요약 카드 및 전용 페이지 전환
-st.markdown("---")
-target = st.session_state["preview_target"]
-info = ORGANELLES[target]
-
-with st.container(border=True):
-    st.markdown('<span class="badge">SELECTED ORGANELLE</span>', unsafe_allow_html=True)
-    st.subheader(f"{info['icon']} {target} 요약")
-    st.info(info["desc"])
-    
-    if target in page_path_map:
-        if st.button(f"🔍 {target} 단독 페이지로 이동하기 ➔", type="primary", use_container_width=True):
-            st.switch_page(page_path_map[target])
-    else:
-        st.warning(f"⚠️ `{target}` 상세 파일(`pages/` 내 해당 `.py` 파일)이 GitHub에 아직 존재하지 않습니다.")
-
-# -----------------------------------------------------------------------------
-# 4. 네비게이션 실행
-# -----------------------------------------------------------------------------
-pg.run()
+# 3. 사이드바 메뉴 렌더링 및 실행
+if valid_pages:
+    pg = st.navigation(valid_pages)
+    pg.run()
+else:
+    st.error("`pages/` 폴더 내에 접근 가능한 페이지 파일이 없습니다.")
